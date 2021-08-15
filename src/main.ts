@@ -9,7 +9,7 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { IHttpJsonClient, IHttpJsonClientError } from 'thaw-types';
+import { IHttpClient, IHttpJsonClient, IHttpJsonClientError } from 'thaw-types';
 
 const httpOptions = {
 	headers: new HttpHeaders({
@@ -18,50 +18,8 @@ const httpOptions = {
 	})
 };
 
-class HttpJsonClient implements IHttpJsonClient {
-	constructor(private http: HttpClient) {}
-
-	public get<T>(url: string): Observable<T> {
-		return this.f('GET', url, () => this.http.get<T>(url))();
-	}
-
-	// public getHttpResponse<T>(url: string): Observable<HttpResponse<T>> {
-	// 	return this.f('GET', url, () =>
-	// 		this.http.get<T>(url, { observe: 'response' })
-	// 	)();
-	// }
-
-	public post(url: string, body: unknown): Observable<unknown> {
-		return this.f('POST', url, () =>
-			this.http.post(url, body, httpOptions)
-		)();
-	}
-
-	public put(url: string, body: unknown): Observable<unknown> {
-		return this.f('PUT', url, () =>
-			this.http.put(url, body, httpOptions)
-		)();
-	}
-
-	public patch(url: string, body: unknown): Observable<unknown> {
-		return this.f('PATCH', url, () =>
-			this.http.patch(url, body, httpOptions)
-		)();
-	}
-
-	public delete<T>(url: string): Observable<T> {
-		return this.f('DELETE', url, () => this.http.delete<T>(url))();
-	}
-
-	public head<T>(url: string): Observable<T> {
-		return this.f('HEAD', url, () => this.http.head<T>(url))();
-	}
-
-	public options<T>(url: string): Observable<T> {
-		return this.f('OPTIONS', url, () => this.http.options<T>(url))();
-	}
-
-	private f<T>(
+class HttpClientBase {
+	protected f<T>(
 		method: string,
 		url: string,
 		g: () => Observable<T>
@@ -140,6 +98,78 @@ class HttpJsonClient implements IHttpJsonClient {
 			url: error.url || undefined
 		} as IHttpJsonClientError);
 	}
+}
+
+class HttpSimpleClient extends HttpClientBase implements IHttpClient {
+	constructor(private http: HttpClient) {
+		super();
+	}
+
+	public get(url: string): Observable<string> {
+		return this.f('GET', url, () =>
+			this.http.get<string>(url, { responseType: 'text' as 'json' })
+		)();
+	}
+
+	// try {
+	// 	responseBodyAsString = await httpClient
+	// 		.get<string>(url, { responseType: 'text' as 'json' })
+	// 		.toPromise();
+	// } catch (error) {
+	// 	console.error('httpClient.get() error:', typeof error, error);
+	//
+	// 	return undefined;
+	// }
+}
+
+class HttpJsonClient extends HttpClientBase implements IHttpJsonClient {
+	constructor(private http: HttpClient) {
+		super();
+	}
+
+	public get<T>(url: string): Observable<T> {
+		return this.f('GET', url, () => this.http.get<T>(url))();
+	}
+
+	// public getHttpResponse<T>(url: string): Observable<HttpResponse<T>> {
+	// 	return this.f('GET', url, () =>
+	// 		this.http.get<T>(url, { observe: 'response' })
+	// 	)();
+	// }
+
+	public post(url: string, body: unknown): Observable<unknown> {
+		return this.f('POST', url, () =>
+			this.http.post(url, body, httpOptions)
+		)();
+	}
+
+	public put(url: string, body: unknown): Observable<unknown> {
+		return this.f('PUT', url, () =>
+			this.http.put(url, body, httpOptions)
+		)();
+	}
+
+	public patch(url: string, body: unknown): Observable<unknown> {
+		return this.f('PATCH', url, () =>
+			this.http.patch(url, body, httpOptions)
+		)();
+	}
+
+	public delete<T>(url: string): Observable<T> {
+		return this.f('DELETE', url, () => this.http.delete<T>(url))();
+	}
+
+	public head<T>(url: string): Observable<T> {
+		return this.f('HEAD', url, () => this.http.head<T>(url))();
+	}
+
+	public options<T>(url: string): Observable<T> {
+		return this.f('OPTIONS', url, () => this.http.options<T>(url))();
+	}
+}
+
+export function createHttpClient(http: HttpClient): IHttpClient {
+	return new HttpSimpleClient(http);
 }
 
 export function createHttpJsonClient(http: HttpClient): IHttpJsonClient {
