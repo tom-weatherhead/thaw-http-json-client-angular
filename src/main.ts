@@ -1,5 +1,7 @@
 // thaw-http-json-client-angular/src/main.ts
 
+// TODO 2022-07-04 : Rewrite this package as an Angular service library
+
 import {
 	HttpClient,
 	HttpErrorResponse,
