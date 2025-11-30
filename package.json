@@ -58,7 +58,7 @@
 	"publishConfig": {},
 	"dependencies": {
 		"@angular/cdk": "^14.0.4",
-		"@angular/common": "^14.0.4",
+		"@angular/common": "^19.2.16",
 		"@angular/compiler": "^14.0.4",
 		"@angular/core": "^14.0.4",
 		"@angular/forms": "^14.0.4",
